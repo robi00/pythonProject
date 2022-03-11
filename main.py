@@ -1,16 +1,39 @@
-# This is a sample Python script.
+from collections import defaultdict
+import requests
 
-# Press Maiusc+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+address = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
+url = "https://api.etherscan.io/api?module=account&action=txlist&address=" + address + \
+          "&startblock=0&endblock=99999999&page=1&offset=1000&sort=desc&apikey=YourApiKeyToken"
 
+response = requests.get(url)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+address_content = response.json()
+result = address_content.get("result")
 
+for n,transaction in enumerate(result):
+    hash = transaction.get("hash")
+    tx_from = transaction.get("from")
+    tx_to = transaction.get("to")
+    gasPrice = transaction.get("gasPrice")
+    gasUsed = transaction.get("gasUsed")
+    timeStamp = transaction.get("timeStamp")
+    value = transaction.get("value")
+    contractAddress = transaction.get("contractAddress")
+    tokenSymbol = "ETH"
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    print("{ \n")
+    print("'address': ", address)
+    print("'transaction':{")
+    print(" 'hash': ", hash)
+    print(" 'from': ", tx_from)
+    print(" 'to': ", tx_to)
+    print(" 'gasPrice': ", gasPrice)
+    print(" 'gasUsed': ", gasUsed)
+    print(" 'timeStamp': ", timeStamp)
+    print(" 'value': ", value)
+    print(" 'contractAddress': ", contractAddress)
+    print(" 'tokenSymbol': ", tokenSymbol)
+    print(" }")
+    print("}")
+    print ("\n")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
