@@ -26,15 +26,15 @@ response = requests.get(url)
 address_content = response.json()
 result = address_content.get("result")
 
-for token in result:
-    hash = token.get("hash")
-    tx_from = token.get("from")
-    tx_to = token.get("to")
-    gasPrice = token.get("gasPrice")
-    gasUsed = token.get("gasUsed")
-    timeStamp = token.get("timeStamp")
-    value = token.get("value")
-    contractAddress = token.get("contractAddress")
+for transaction in result:
+    hash = transaction.get("hash")
+    tx_from = transaction.get("from")
+    tx_to = transaction.get("to")
+    gasPrice = transaction.get("gasPrice")
+    gasUsed = transaction.get("gasUsed")
+    timeStamp = transaction.get("timeStamp")
+    value = transaction.get("value")
+    contractAddress = transaction.get("contractAddress")
     tokenSymbol = "USDT"
 
     mongoDatabase.Etherscan.insert_one(
