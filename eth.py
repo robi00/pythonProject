@@ -28,11 +28,9 @@ account5 = "0x5a59FC20E2659f9Df6A21ccD8627eA0D2403b36B"
 
 API_KEY = os.getenv("API_KEY")
 
-add = [account1, account2, account3, account4, account5]
-n = 0
-while n <= 5:
-    print(n)
-    address = add[n]
+accounts = [account1, account2, account3, account4, account5]
+
+for address in accounts:
     url = "https://api.etherscan.io/api?module=account&action=txlist&address=" + address + \
           "&startblock=0&endblock=99999999&page=1&offset=1000&sort=desc&apikey=" + API_KEY
     response = requests.get(url)
@@ -64,7 +62,7 @@ while n <= 5:
             }
         )
         print("Transaction entered")
-    n = n+1
+
 
 
 
