@@ -3,6 +3,8 @@ import requests
 from mongo import Document
 from pymongo import MongoClient
 import dns
+from dotenv import load_dotenv
+import os
 
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 mongoDatabase = conn.get_database("MyMongoDB")
@@ -24,13 +26,15 @@ account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
 account4 = "0xEda5066780dE29D00dfb54581A707ef6F52D8113"
 account5 = "0x5a59FC20E2659f9Df6A21ccD8627eA0D2403b36B"
 
+API_KEY = os.getenv("API_KEY")
+
 add = [account1, account2, account3, account4, account5]
 n = 0
 while n <= 5:
     print(n)
     address = add[n]
     url = "https://api.etherscan.io/api?module=account&action=txlist&address=" + address + \
-          "&startblock=0&endblock=99999999&page=1&offset=1000&sort=desc&apikey=YourApiKeyToken"
+          "&startblock=0&endblock=99999999&page=1&offset=1000&sort=desc&apikey=" + API_KEY
     response = requests.get(url)
     address_content = response.json()
     result = address_content.get("result")
