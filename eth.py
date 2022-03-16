@@ -1,3 +1,4 @@
+import time
 import pymongo
 import requests
 from mongo import Document
@@ -19,7 +20,6 @@ if list_len == 0:
 else:
     print("Existing collection")
 
-
 account1 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
 account2 = "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4"
 account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
@@ -29,42 +29,53 @@ account5 = "0x5a59FC20E2659f9Df6A21ccD8627eA0D2403b36B"
 API_KEY = os.getenv("API_KEY")
 
 accounts = [account1, account2, account3, account4, account5]
+i = 0
+
+
+def store_transaction(tx: dict, addr: str):
+    trans = {'address': addr, 'transactions': tx}
+    mongoDatabase.Etherscan.insert_one(trans)
+    print("Transaction entered")
+
 
 for address in accounts:
-    url = "https://api.etherscan.io/api?module=account&action=txlist&address=" + address + \
-          "&startblock=0&endblock=99999999&page=1&offset=1000&sort=desc&apikey=" + API_KEY
+    url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&" \
+          f"endblock=99999999&page=1&offset=1000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
     result = address_content.get("result")
 
     for transaction in result:
-        hash = transaction.get("hash")
-        tx_from = transaction.get("from")
-        tx_to = transaction.get("to")
-        gasPrice = transaction.get("gasPrice")
-        gasUsed = transaction.get("gasUsed")
-        timeStamp = transaction.get("timeStamp")
-        value = transaction.get("value")
-        contractAddress = transaction.get("contractAddress")
-        tokenSymbol = "ETH"
-
-        mongoDatabase.Etherscan.insert_one(
-            {
-                "address": address,
-                "   hash": hash,
-                "   from": tx_from,
-                "   to": tx_to,
-                "   gasPrice": gasPrice,
-                "   gasUsed": gasUsed,
-                "   timeStamp": timeStamp,
-                "   contractAddress": contractAddress,
-                "   tokenSymbol": tokenSymbol,
-            }
-        )
-        print("Transaction entered")
+        _tx = {}
+        _tx['hash'] = transaction['hash']
+        _tx['from'] = transaction['from']
+        _tx['to'] = transaction['to']
+        _tx['gasPrice'] = transaction['gasPrice']
+        _tx['gasUsed'] = transaction['gasUsed']
+        _tx['timeStamp'] = transaction['timeStamp']
+        _tx['value'] = transaction['value']
+        _tx['contractAddress'] = ""
+        _tx['tokenSymbol'] = "ETH"
+        store_transaction(tx=_tx, addr=address)
+        i += 1
+        if i % 5 == 0:
+            time.sleep(1)
 
 
+def get_transaction(hash: str) -> dict:
+    mongoDatabase.Etherscan.find({"hash": hash})
+    return {
+        "address": address,
+        "hash": hash,
+        "from": _tx['from'],
+        "to": _tx['to'],
+        "gasPrice": _tx['gasPrice'],
+        "gasUsed": _tx['gasUsed'],
+        "timeStamp": _tx['timeStamp'],
+        "contractAddress": _tx['contractAddress'],
+        "tokenSymbol": _tx['tokenSymbol'],
+    }
 
 
-
-
+hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+print(get_transaction(hash))
