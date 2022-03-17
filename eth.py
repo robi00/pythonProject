@@ -35,7 +35,6 @@ def store_txs(address: str):
           f"endblock=99999999&page=1&offset=1000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
-    print(address_content)
     result = address_content.get("result")
 
     for transaction in result:
@@ -83,19 +82,10 @@ def extract_transactions(accounts: list):
             time.sleep(1)
 
 
-"""def get_transaction(hash: str) -> dict:
-    mongoDatabase.Etherscan.find({"hash": hash})
-    return {
-        "address": address,
-        "hash": hash,
-        "from": _tx['from'],
-        "to": _tx['to'],
-        "gasPrice": _tx['gasPrice'],
-        "gasUsed": _tx['gasUsed'],
-        "timeStamp": _tx['timeStamp'],
-        "contractAddress": _tx['contractAddress'],
-        "tokenSymbol": _tx['tokenSymbol'],
-    }"""
+def get_transaction(hash: str) -> dict:
+    response = mongoDatabase.Etherscan.find({"transactions.hash": hash})
+    for record in response:
+        print(record)
 
 
 def main():
@@ -106,8 +96,8 @@ def main():
     account5 = "0x5a59FC20E2659f9Df6A21ccD8627eA0D2403b36B"
     accounts = [account1, account2, account3, account4, account5]
     extract_transactions(accounts)
-    """hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
-    print(get_transaction(hash))"""
+    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+    get_transaction(hash)
 
 
 if __name__ == '__main__':
