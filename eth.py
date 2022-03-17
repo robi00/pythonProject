@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import dns
 from dotenv import load_dotenv
 import os
+from decouple import config
 
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 mongoDatabase = conn.get_database("MyMongoDB")
@@ -20,7 +21,7 @@ if list_len == 0:
 else:
     print("Existing collection")
 
-API_KEY = os.getenv("API_KEY")
+API_KEY = config('API_KEY')
 
 
 def store_transaction(tx: dict, addr: str):
@@ -34,6 +35,7 @@ def store_txs(address: str):
           f"endblock=99999999&page=1&offset=1000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
+    print(address_content)
     result = address_content.get("result")
 
     for transaction in result:
@@ -52,7 +54,7 @@ def store_txs(address: str):
 
 def store_txs_erc20(address: str):
     url = f"https://api.etherscan.io/api?module=account&action=tokentx&address={address}&startblock=0&endblock" \
-          f"=999999999&sort=desc&apikey={API_KEY} "
+          f"=999999999&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
     result = address_content.get("result")
