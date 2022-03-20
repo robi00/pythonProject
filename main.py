@@ -20,6 +20,11 @@ if list_len == 0:
     print("Collection: Etherscan")
 else:
     print("Existing collection")
+    mongoDatabase.Etherscan.drop()
+    print("Existing collection deleted")
+    mongoDatabase.create_collection("Etherscan")
+    print("Collection: Etherscan")
+
 
 API_KEY = config('API_KEY')
 
@@ -27,7 +32,8 @@ API_KEY = config('API_KEY')
 def store_transaction(tx: dict, addr: str):
     trans = {'address': addr, 'transactions': tx}
     mongoDatabase.Etherscan.insert_one(trans)
-    print("Transaction entered")
+    hash = tx['hash']
+    print(f"Entring transaction {hash} for the account {addr}")
 
 
 def store_txs(address: str):
