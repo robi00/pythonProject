@@ -111,7 +111,7 @@ def create_edges():
         _tx['gasUsed'] = transaction['gasUsed']
         _tx['value'] = transaction['value']
 
-        with open("addresses.txt") as f:
+        with open("addresses.csv") as f:
             datafile = f.readlines()
         for line in datafile:
             if _tx['tx_from'] in line:  # malicious from address
