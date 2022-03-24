@@ -100,30 +100,30 @@ def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, labe
     write("edges.csv", entry=ent)
 
 
-def fraudulent(address: str):
-    """TO-DO: check if address is fraudulent"""
-
-
 def create_edges():
     response = mongoDatabase.Etherscan.find({})
     for transaction in response:
+        print(f"CREATE EDGES: {transaction}")
         _tx = {}
-        _tx['from'] = transaction['from']
-        _tx['to'] = transaction['to']
+        _tx['tx_from'] = transaction['from']
+        _tx['tx_to'] = transaction['to']
         _tx['gasPrice'] = transaction['gasPrice']
         _tx['gasUsed'] = transaction['gasUsed']
         _tx['value'] = transaction['value']
 
-        if fraudulent(address=_tx['from']) or (fraudulent(address=_tx['from']) and fraudulent(address=_tx['to'])):
-            label = "1"
-        elif not fraudulent(address=_tx['from']) and fraudulent(address=_tx['to']):
-            label = "2"
-        else:
-            label = "0"
+        with open("addresses.txt") as f:
+            datafile = f.readlines()
+        for line in datafile:
+            if _tx['tx_from'] in line:  # malicious from address
+                label = '0'
+            elif not _tx['tx_from'] in line and _tx['tx_to'] in line:  # onest from and to
+                label = '2'
+            else:  # onest from but malicious to -> phishing
+                label = '1'
 
         edge(
-            tx_from=_tx['from'],
-            tx_to=_tx['to'],
+            tx_from=_tx['tx_from'],
+            tx_to=_tx['tx_to'],
             gasPrice=_tx['gasPrice'],
             gasUsed=_tx['gasUsed'],
             value=_tx['value'],
@@ -132,22 +132,24 @@ def create_edges():
 
 
 def create_nodes(accounts: list):
-    if label == "fraudulent":
-        id_label = "1"
-    elif label == "victims":
-        id_label = "2"
-    elif label == "unknown":
-        id_label = "0"
-
-    for address in accounts:
-        entry = "{},{}".format(address, id_label)
+    for account in accounts:
+        with open("edges.csv") as f:
+            datafile = f.readlines()
+            for label in datafile:
+                if label == '0':
+                    id_label = '0'
+                elif label == '1':
+                    id_label = '1'
+                elif label == '2':
+                    id_label = '2'
+        entry = "{},{}".format(account, id_label)
         write("nodes.csv", entry=entry)
 
 
 def get_transaction(hash: str) -> dict:
     response = mongoDatabase.Etherscan.find({"transactions.hash": hash})
     for record in response:
-        print(record)
+        print(f"RECORD: {record}")
 
 
 def main():
@@ -157,8 +159,8 @@ def main():
     accounts = [account1, account2, account3]
     print(accounts)
     extract_transactions(accounts)
-    # hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
-    # get_transaction(hash)
+    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+    get_transaction(hash)
 
     write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,label")
     write(file="nodes.csv", entry="address,label")
