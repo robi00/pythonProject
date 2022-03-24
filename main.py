@@ -1,6 +1,5 @@
 import time
 import pymongo
-import redis
 import requests
 import csv
 from pymongo import MongoClient
@@ -8,7 +7,6 @@ import dns
 import os
 from decouple import config
 
-red = redis.Redis(host='localhost', port=6379, db=0)
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 mongoDatabase = conn.get_database("MyMongoDB")
 collection = mongoDatabase.get_collection("Etherscan")
@@ -43,7 +41,7 @@ def store_transaction(tx: dict, addr: str):
 
 
 def store_txs(address: str):
-    print("IN STORE TXS:"+address)
+    print("IN STORE TXS:" + address)
     url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&" \
           f"endblock=99999999&page=1&offset=1000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
@@ -89,7 +87,7 @@ def store_txs_erc20(address: str):
 def extract_transactions(accounts: list):
     i = 0
     for address in accounts:
-        print("EXTRACT TRANS: " +address)
+        print("EXTRACT TRANS: " + address)
         store_txs(address)
         store_txs_erc20(address)
         i += 1
@@ -97,34 +95,24 @@ def extract_transactions(accounts: list):
             time.sleep(1)
 
 
-def fraudulent(address: str) -> bool:
-    return red.sismember("fraudulent", address) or red.sismember("extended_fraudulent", address)
-
-
-def processed(address: str) -> bool:
-    return red.sismember("processed", address)
-
-
-def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, hash: str, timeStamp: str,
-         contractAddress: str, tokenSymbol: str, label: str):
-    ent = "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, ".format(tx_from, tx_to, gasPrice, gasUsed, value, hash, timeStamp,
-                                                       contractAddress, tokenSymbol, label)
+def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, label: str):
+    ent = "{}, {}, {}, {}, {}, {}, ".format(tx_from, tx_to, gasPrice, gasUsed, value, label)
     write("edges.csv", entry=ent)
+
+
+def fraudulent(address: str):
+    """TO-DO: check if address is fraudulent"""
 
 
 def create_edges():
     response = mongoDatabase.Etherscan.find({})
     for transaction in response:
         _tx = {}
-        _tx['hash'] = transaction['hash']
         _tx['from'] = transaction['from']
         _tx['to'] = transaction['to']
         _tx['gasPrice'] = transaction['gasPrice']
         _tx['gasUsed'] = transaction['gasUsed']
-        _tx['timeStamp'] = transaction['timeStamp']
         _tx['value'] = transaction['value']
-        _tx['contractAddress'] = transaction['contractAddress']
-        _tx['tokenSymbol'] = transaction['tokenSymbol']
 
         if fraudulent(address=_tx['from']) or (fraudulent(address=_tx['from']) and fraudulent(address=_tx['to'])):
             label = "1"
@@ -139,36 +127,21 @@ def create_edges():
             gasPrice=_tx['gasPrice'],
             gasUsed=_tx['gasUsed'],
             value=_tx['value'],
-            hash=_tx['hash'],
-            timeStamp=_tx['timeStamp'],
-            contractAddress=_tx['contractAddress'],
-            tokenSymbol=_tx['tokenSymbol'],
             label=label
         )
 
 
-def get_address(label: str) -> list:
-    addresses = red.smembers(label)
-    test = list(map(lambda x: x.decode(), addresses))
-    print(f"GET ADDRESS: {test}")
-    return list(map(lambda x: x.decode(), addresses))
+def create_nodes(accounts: list):
+    if label == "fraudulent":
+        id_label = "1"
+    elif label == "victims":
+        id_label = "2"
+    elif label == "unknown":
+        id_label = "0"
 
-
-def create_nodes():
-    for label in ['fraudulent', 'victims', 'unknown', 'ext_fraudulent']:
-        print("Nodes for label " + label)
-        addresses = get_address(label=label)
-
-        if label == "fraudulent" or label == "ext_fraudulent":
-            id_label = "1"
-        elif label == "victims":
-            id_label = "2"
-        elif label == "unknown":
-            id_label = "0"
-
-        for address in addresses:
-            entry = "{},{}".format(address, id_label)
-            write("nodes.csv", entry=entry)
+    for address in accounts:
+        entry = "{},{}".format(address, id_label)
+        write("nodes.csv", entry=entry)
 
 
 def get_transaction(hash: str) -> dict:
@@ -178,33 +151,20 @@ def get_transaction(hash: str) -> dict:
 
 
 def main():
-    #account1 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
-    #account2 = "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4"
-    #account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
-    accounts = ["0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c", "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4",
-                "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"]
+    account1 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
+    account2 = "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4"
+    account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
+    accounts = [account1, account2, account3]
     print(accounts)
-
-    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
-    get_transaction(hash)
+    extract_transactions(accounts)
+    # hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+    # get_transaction(hash)
 
     write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,label")
     write(file="nodes.csv", entry="address,label")
 
-    fraudulent = get_address(label="fraudulent")
-    extract_transactions(accounts=fraudulent)
-
-    unknown = get_address(label="unknown")
-    extract_transactions(accounts=unknown)
-
-    victims = get_address(label="victims")
-    extract_transactions(accounts=victims)
-
-    ext_fraudulent = get_address(label="ext_fraudulent")
-    extract_transactions(accounts=ext_fraudulent)
-
     create_edges()
-    create_nodes()
+    create_nodes(accounts)
 
 
 if __name__ == '__main__':
