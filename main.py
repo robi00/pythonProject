@@ -101,6 +101,14 @@ def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, labe
 
 
 def create_edges():
+    addresses = set()
+    with open("addresses.csv") as f:
+        datafile = f.readlines()
+        for address in datafile:
+            address = address.split(" ")
+            address = address[0]
+            if "0x" in address:  # check
+                addresses.add(address)
     response = mongoDatabase.Etherscan.find({})
     for transaction in response:
         print(f"CREATE EDGES: {transaction}")
@@ -111,15 +119,12 @@ def create_edges():
         _tx['gasUsed'] = transaction['gasUsed']
         _tx['value'] = transaction['value']
 
-        with open("addresses.csv") as f:
-            datafile = f.readlines()
-        for line in datafile:
-            if _tx['tx_from'] in line:  # malicious from address
-                label = '0'
-            elif not _tx['tx_from'] in line and _tx['tx_to'] in line:  # onest from and to
-                label = '2'
-            else:  # onest from but malicious to -> phishing
-                label = '1'
+        if _tx['tx_from'] in addresses:  # malicious from address
+            label = '0'
+        elif not _tx['tx_from'] in addresses and _tx['tx_to'] in addresses:  # onest from and to
+            label = '2'
+        else:  # onest from but malicious to -> phishing
+            label = '1'
 
         edge(
             tx_from=_tx['tx_from'],
@@ -132,16 +137,24 @@ def create_edges():
 
 
 def create_nodes(accounts: list):
-    for account in accounts:
-        with open("edges.csv") as f:
-            datafile = f.readlines()
-            for label in datafile:
-                if label == '0':
-                    id_label = '0'
-                elif label == '1':
-                    id_label = '1'
-                elif label == '2':
-                    id_label = '2'
+    edges = set()
+    with open("edges.csv") as f:
+        datafile = f.readlines()
+        for edge in datafile:
+            edge = edge.split(",")
+            edge = edge[5]
+            address = edge[1]
+            edges.add(edge)
+        # label.strip
+        for label in edges:
+            if label == '0':
+                id_label = '0'
+            elif label == '1':
+                id_label = '1'
+            elif label == '2':
+                id_label = '2'
+        for address in accounts:
+            account = address
         entry = "{},{}".format(account, id_label)
         write("nodes.csv", entry=entry)
 
