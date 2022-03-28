@@ -60,6 +60,9 @@ def store_txs(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
+        ent = "{},{},{},{},{},".format(_tx['from'], _tx['to'], _tx['gasPrice'], _tx['gasUsed'], _tx['value'])
+        write("transactions.csv", entry=ent)
+        print(f"PROVAAAAAAAA {ent}")
         store_transaction(tx=_tx, addr=address)
 
 
@@ -81,12 +84,26 @@ def store_txs_erc20(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
+        ent = "{},{},{},{},{},".format(_tx['from'], _tx['to'], _tx['gasPrice'], _tx['gasUsed'], _tx['value'])
+        write("transactions.csv", entry=ent)
         store_transaction(tx=_tx, addr=address)
 
 
-def extract_transactions(accounts: list):
+def load_addresses():  # load_scam_accounts
+    addresses = set()
+    with open("addresses.csv") as f:
+        datafile = f.readlines()
+        for address in datafile:
+            address = address.split(" ")
+            address = address[0]
+            if "0x" in address:  # check
+                addresses.add(address)
+    return addresses
+
+
+def extract_transactions(addresses: list):
     i = 0
-    for address in accounts:
+    for address in addresses:
         print("EXTRACT TRANS: " + address)
         store_txs(address)
         store_txs_erc20(address)
@@ -96,44 +113,35 @@ def extract_transactions(accounts: list):
 
 
 def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, label: str):
-    ent = "{}, {}, {}, {}, {}, {}, ".format(tx_from, tx_to, gasPrice, gasUsed, value, label)
+    ent = "{}, {}, {}, {}, {}, {}, ".format(tx_from, tx_to, gasPrice, gasUsed, value, label.strip("\n"))
     write("edges.csv", entry=ent)
 
 
-def create_edges():
-    addresses = set()
-    with open("addresses.csv") as f:
-        datafile = f.readlines()
-        for address in datafile:
-            address = address.split(" ")
-            address = address[0]
-            if "0x" in address:  # check
-                addresses.add(address)
-    response = mongoDatabase.Etherscan.find({})
-    for transaction in response:
-        print(f"CREATE EDGES: {transaction}")
-        _tx = {}
-        _tx['tx_from'] = transaction['from']
-        _tx['tx_to'] = transaction['to']
-        _tx['gasPrice'] = transaction['gasPrice']
-        _tx['gasUsed'] = transaction['gasUsed']
-        _tx['value'] = transaction['value']
+def create_edges(addresses: set):
+    with open("transactions.csv") as f:
+        for line in f:
+            line = line.split(",")
+            fromAddr = line[0]
+            toAddr = line[1]
+            gasPrice = line[2]
+            gasUsed = line[3]
+            value = line[4]
+            if fromAddr in addresses:  # malicious from address
+                label = '0'
+            elif fromAddr not in addresses and toAddr not in addresses:  # onest from and to
+                label = '2'
+            else:  # onest from but malicious to -> phishing
+                label = '1'
+            print("EDGEEEEEEEEEE")
 
-        if _tx['tx_from'] in addresses:  # malicious from address
-            label = '0'
-        elif not _tx['tx_from'] in addresses and _tx['tx_to'] in addresses:  # onest from and to
-            label = '2'
-        else:  # onest from but malicious to -> phishing
-            label = '1'
-
-        edge(
-            tx_from=_tx['tx_from'],
-            tx_to=_tx['tx_to'],
-            gasPrice=_tx['gasPrice'],
-            gasUsed=_tx['gasUsed'],
-            value=_tx['value'],
-            label=label
-        )
+            edge(
+                tx_from=fromAddr,
+                tx_to=toAddr,
+                gasPrice=gasPrice,
+                gasUsed=gasUsed,
+                value=value,
+                label=label
+            )
 
 
 def create_nodes(accounts: list):
@@ -142,8 +150,7 @@ def create_nodes(accounts: list):
         datafile = f.readlines()
         for edge in datafile:
             edge = edge.split(",")
-            edge = edge[5]
-            address = edge[1]
+            edge = edge[4]
             edges.add(edge)
         # label.strip
         for label in edges:
@@ -151,12 +158,12 @@ def create_nodes(accounts: list):
                 id_label = '0'
             elif label == '1':
                 id_label = '1'
-            elif label == '2':
+            else:
                 id_label = '2'
-        for address in accounts:
-            account = address
-        entry = "{},{}".format(account, id_label)
-        write("nodes.csv", entry=entry)
+            for address in accounts:
+                account = address
+                entry = "{},{}".format(account, id_label)
+                write("nodes.csv", entry=entry)
 
 
 def get_transaction(hash: str) -> dict:
@@ -178,7 +185,8 @@ def main():
     write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,label")
     write(file="nodes.csv", entry="address,label")
 
-    create_edges()
+    fraudulent: set = load_addresses()
+    create_edges(fraudulent)
     create_nodes(accounts)
 
 
