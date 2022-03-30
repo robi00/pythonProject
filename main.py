@@ -7,6 +7,7 @@ import dns
 import os
 from decouple import config
 
+# label.strip
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 mongoDatabase = conn.get_database("MyMongoDB")
 collection = mongoDatabase.get_collection("Etherscan")
@@ -29,7 +30,7 @@ API_KEY = config('API_KEY')
 
 def write(file: str, entry: str):
     file = open(file, "a")
-    file.write(entry + " \n")
+    file.write(entry + "\n")
     file.close()
 
 
@@ -60,9 +61,6 @@ def store_txs(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
-        ent = "{},{},{},{},{},".format(_tx['from'], _tx['to'], _tx['gasPrice'], _tx['gasUsed'], _tx['value'])
-        write("transactions.csv", entry=ent)
-        print(f"PROVAAAAAAAA {ent}")
         store_transaction(tx=_tx, addr=address)
 
 
@@ -84,17 +82,15 @@ def store_txs_erc20(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
-        ent = "{},{},{},{},{},".format(_tx['from'], _tx['to'], _tx['gasPrice'], _tx['gasUsed'], _tx['value'])
-        write("transactions.csv", entry=ent)
         store_transaction(tx=_tx, addr=address)
 
 
-def load_addresses():  # load_scam_accounts
+def load_addresses():
     addresses = set()
     with open("addresses.csv") as f:
         datafile = f.readlines()
         for address in datafile:
-            address = address.split(" ")
+            address = address.split("\t")
             address = address[0]
             if "0x" in address:  # check
                 addresses.add(address)
@@ -113,7 +109,7 @@ def extract_transactions(addresses: list):
 
 
 def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, label: str):
-    ent = "{}, {}, {}, {}, {}, {}, ".format(tx_from, tx_to, gasPrice, gasUsed, value, label.strip("\n"))
+    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, label)
     write("edges.csv", entry=ent)
 
 
@@ -132,7 +128,6 @@ def create_edges(addresses: set):
                 label = '2'
             else:  # onest from but malicious to -> phishing
                 label = '1'
-            print("EDGEEEEEEEEEE")
 
             edge(
                 tx_from=fromAddr,
@@ -145,18 +140,14 @@ def create_edges(addresses: set):
 
 
 def create_nodes(accounts: list):
-    edges = set()
     with open("edges.csv") as f:
+
         datafile = f.readlines()
         for edge in datafile:
             edge = edge.split(",")
-            edge = edge[4]
-            edges.add(edge)
-        # label.strip
-        for label in edges:
-            if label == '0':
+            if edge[5] == '0\n':
                 id_label = '0'
-            elif label == '1':
+            elif edge[5] == '1\n':
                 id_label = '1'
             else:
                 id_label = '2'
@@ -185,7 +176,8 @@ def main():
     write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,label")
     write(file="nodes.csv", entry="address,label")
 
-    fraudulent: set = load_addresses()
+    fraudulent = load_addresses()
+    print(fraudulent)
     create_edges(fraudulent)
     create_nodes(accounts)
 
