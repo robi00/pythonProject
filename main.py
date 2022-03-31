@@ -6,6 +6,8 @@ from pymongo import MongoClient
 import dns
 import os
 from decouple import config
+import networkx as nx
+import matplotlib.pyplot as plt
 
 # label.strip
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
@@ -85,6 +87,17 @@ def store_txs_erc20(address: str):
         store_transaction(tx=_tx, addr=address)
 
 
+def extract_transactions(addresses: list):
+    i = 0
+    for address in addresses:
+        print("EXTRACT TRANS: " + address)
+        store_txs(address)
+        store_txs_erc20(address)
+        i += 1
+        if i % 3 == 0:
+            time.sleep(1)
+
+
 def load_addresses():
     addresses = set()
     with open("addresses.csv") as f:
@@ -95,17 +108,6 @@ def load_addresses():
             if "0x" in address:  # check
                 addresses.add(address)
     return addresses
-
-
-def extract_transactions(addresses: list):
-    i = 0
-    for address in addresses:
-        print("EXTRACT TRANS: " + address)
-        store_txs(address)
-        store_txs_erc20(address)
-        i += 1
-        if i % 3 == 0:
-            time.sleep(1)
 
 
 def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, label: str):
@@ -139,22 +141,45 @@ def create_edges(addresses: set):
             )
 
 
-def create_nodes(accounts: list):
+def create_nodes():
+    addresses = set()
     with open("edges.csv") as f:
-
         datafile = f.readlines()
-        for edge in datafile:
-            edge = edge.split(",")
-            if edge[5] == '0\n':
-                id_label = '0'
-            elif edge[5] == '1\n':
-                id_label = '1'
+        for label in datafile:
+            label = label.split(",")
+            if label[5] == '0\n':
+                addr_from = label[0]
+                if "0x" in addr_from and addr_from not in addresses:
+                    addresses.add(addr_from)
+                    entry = "{},{}".format(addr_from, "0")
+                    write("nodes.csv", entry)
+                addr_to = label[1]
+                if "0x" in addr_to and addr_to not in addresses:
+                    addresses.add(addr_to)
+                    entry = "{},{}".format(addr_to, "0")
+                    write("nodes.csv", entry)
+            elif label[5] == '1\n':
+                addr_from = label[0]
+                if "0x" in addr_from and addr_from not in addresses:
+                    addresses.add(addr_from)
+                    entry = "{},{}".format(addr_from, "1")
+                    write("nodes.csv", entry)
+                addr_to = label[1]
+                if "0x" in addr_to and addr_to not in addresses:
+                    addresses.add(addr_to)
+                    entry = "{},{}".format(addr_to, "0")
+                    write("nodes.csv", entry)
             else:
-                id_label = '2'
-            for address in accounts:
-                account = address
-                entry = "{},{}".format(account, id_label)
-                write("nodes.csv", entry=entry)
+                addr_from = label[0]
+                if "0x" in addr_from and addr_from not in addresses:
+                    addresses.add(addr_from)
+                    entry = "{},{}".format(addr_from, "2")
+                    write("nodes.csv", entry)
+                addr_to = label[1]
+                if "0x" in addr_to and addr_to not in addresses:
+                    addresses.add(addr_to)
+                    entry = "{},{}".format(addr_to, "2")
+                    write("nodes.csv", entry)
 
 
 def get_transaction(hash: str) -> dict:
@@ -163,12 +188,55 @@ def get_transaction(hash: str) -> dict:
         print(f"RECORD: {record}")
 
 
+def create_graph():
+    g = nx.DiGraph()
+    addresses = list()
+    color_map = []
+
+    with open("nodes.csv") as f:
+        datafile = f.readlines()
+        for node in datafile:
+            node = node.split(",")
+            address = node[0]
+            if "0x" in address:
+                addresses.append(address)
+            g.add_nodes_from(addresses)
+
+            if '0\n' in node[1] or '1\n' in node[1] or '2\n' in node[1]:
+                if node[1] == '0\n':
+                    color_map.append('red')
+                elif node[1] == '1\n':
+                    color_map.append('green')
+                else:
+                    color_map.append('blue')
+
+    with open("edges.csv") as f:
+        datafi = f.readlines()
+        for edge in datafi:
+            edge = edge.split(",")
+            from_addr = edge[0]
+            to_addr = edge[1]
+            if "0x" in from_addr and "0x" in to_addr:
+                g.add_edge(from_addr, to_addr, weight=edge[4])  # weight=value
+    print("g.edges =", g.edges)
+    print("Number of edges =", g.number_of_edges())
+
+    """print("Number of nodes =", g.number_of_nodes())
+    print("Number of edges =", g.number_of_edges())
+
+    print("g.nodes =", g.nodes)  # collection of nodes in the graph
+      # collection of edges in the graph"""
+
+    plt.figure(1)
+    nx.draw_networkx(g, node_color=color_map, with_labels=False)
+    plt.show()
+
+
 def main():
     account1 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
     account2 = "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4"
     account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
     accounts = [account1, account2, account3]
-    print(accounts)
     extract_transactions(accounts)
     hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
     get_transaction(hash)
@@ -177,9 +245,10 @@ def main():
     write(file="nodes.csv", entry="address,label")
 
     fraudulent = load_addresses()
-    print(fraudulent)
     create_edges(fraudulent)
-    create_nodes(accounts)
+    create_nodes()
+
+    create_graph()
 
 
 if __name__ == '__main__':
