@@ -211,15 +211,19 @@ def create_graph():
                     color_map.append('blue')
 
     with open("edges.csv") as f:
-        datafi = f.readlines()
-        for edge in datafi:
+        f_addr = []
+        t_addr = []
+        data = f.readlines()
+        for edge in data:
             edge = edge.split(",")
             from_addr = edge[0]
+            if "0x" in from_addr:
+                f_addr.append(from_addr)
             to_addr = edge[1]
-            if "0x" in from_addr and "0x" in to_addr:
-                g.add_edge(from_addr, to_addr, weight=edge[4])  # weight=value
-    print("g.edges =", g.edges)
-    print("Number of edges =", g.number_of_edges())
+            if "0x" in to_addr:
+                t_addr.append(to_addr)
+        for i in range(len(f_addr) - 1):
+            g.add_edge(f_addr[i], t_addr[i], weight=edge[4])  # weight=value
 
     """print("Number of nodes =", g.number_of_nodes())
     print("Number of edges =", g.number_of_edges())
