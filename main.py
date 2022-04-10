@@ -46,7 +46,7 @@ def store_transaction(tx: dict, addr: str):
 def store_txs(address: str):
     print("IN STORE TXS:" + address)
     url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&" \
-          f"endblock=99999999&page=1&offset=1000&sort=desc&apikey={API_KEY}"
+          f"endblock=99999999&page=1&offset=10000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
     print(address_content)
@@ -83,7 +83,7 @@ def store_txs_erc20(address: str):
         _tx['timeStamp'] = transaction['timeStamp']
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
-        _tx['tokenSymbol'] = "ETH"
+        _tx['tokenSymbol'] = "USDT"
         store_transaction(tx=_tx, addr=address)
 
 
@@ -223,23 +223,19 @@ def create_graph():
             if "0x" in to_addr:
                 t_addr.append(to_addr)
         for i in range(len(f_addr) - 1):
-            g.add_edge(f_addr[i], t_addr[i], weight=edge[4])  # weight=value
-
-    """print("Number of nodes =", g.number_of_nodes())
-    print("Number of edges =", g.number_of_edges())
-
-    print("g.nodes =", g.nodes)  # collection of nodes in the graph
-      # collection of edges in the graph"""
+            if f_addr[i] not in t_addr[i]:
+                g.add_edge(f_addr[i], t_addr[i], weight=1.0, alpha=0.5)  # weight=value
 
     plt.figure(1)
-    nx.draw_networkx(g, node_color=color_map, with_labels=False)
+    pos = nx.planar_layout(g)
+    nx.draw_networkx(g, pos, node_size=20, node_color=color_map, with_labels=False)
     plt.show()
 
 
 def main():
-    account1 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
-    account2 = "0xbCEaA0040764009fdCFf407e82Ad1f06465fd2C4"
-    account3 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
+    account1 = "0xa7f72Bf63EDeCa25636F0B13Ec5135296ca2eBb2"
+    account2 = "0xEda5066780dE29D00dfb54581A707ef6F52D8113"
+    account3 = "0x079667f4f7a0B440Ad35ebd780eFd216751f0758"
     accounts = [account1, account2, account3]
     extract_transactions(accounts)
     hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
