@@ -111,8 +111,8 @@ def load_addresses():
     return addresses
 
 
-def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, label: str):
-    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, label)
+def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, timeStamp: str, value: str, label: str):
+    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, timeStamp, value, label)
     write("edges.csv", entry=ent)
 
 
@@ -124,7 +124,8 @@ def create_edges(addresses: set):
             toAddr = line[1]
             gasPrice = line[2]
             gasUsed = line[3]
-            value = line[4]
+            timeStamp = line[4]
+            value = line[5]
             if fromAddr in addresses:  # malicious from address
                 label = '0'
             elif fromAddr not in addresses and toAddr not in addresses:  # onest from and to
@@ -137,6 +138,7 @@ def create_edges(addresses: set):
                 tx_to=toAddr,
                 gasPrice=gasPrice,
                 gasUsed=gasUsed,
+                timeStamp=timeStamp,
                 value=value,
                 label=label
             )
@@ -148,7 +150,7 @@ def create_nodes():
         datafile = f.readlines()
         for label in datafile:
             label = label.split(",")
-            if label[5] == '0\n':
+            if label[6] == '0\n':
                 addr_from = label[0]
                 if "0x" in addr_from and addr_from not in addresses:
                     addresses.add(addr_from)
@@ -159,7 +161,7 @@ def create_nodes():
                     addresses.add(addr_to)
                     entry = "{},{}".format(addr_to, "0")
                     write("nodes.csv", entry)
-            elif label[5] == '1\n':
+            elif label[6] == '1\n':
                 addr_from = label[0]
                 if "0x" in addr_from and addr_from not in addresses:
                     addresses.add(addr_from)
@@ -187,6 +189,33 @@ def get_transaction(hash: str) -> dict:
     response = mongoDatabase.Etherscan.find({"transactions.hash": hash})
     for record in response:
         print(f"RECORD: {record}")
+
+
+def tr(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, timeStamp: str):
+    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp)
+    write("transactions.csv", entry=ent)
+
+
+def get_tr():
+    res = mongoDatabase.Etherscan.find({})
+    for transaction in res:
+        tra = transaction['transactions']
+        _tx = {}
+        print(f"DENTRO: {tra['from']}")
+        _tx['from'] = tra['from']
+        _tx['to'] = tra['to']
+        _tx['gasPrice'] = tra['gasPrice']
+        _tx['gasUsed'] = tra['gasUsed']
+        _tx['timeStamp'] = tra['timeStamp']
+        _tx['value'] = tra['value']
+        tr(
+            tx_from=_tx['from'],
+            tx_to=_tx['to'],
+            gasPrice=_tx['gasPrice'],
+            gasUsed=_tx['gasUsed'],
+            timeStamp=_tx['timeStamp'],
+            value=_tx['value'],
+        )
 
 
 def create_graph():
@@ -239,17 +268,19 @@ def main():
     account3 = "0x079667f4f7a0B440Ad35ebd780eFd216751f0758"
     accounts = [account1, account2, account3]
     extract_transactions(accounts)
-    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+    get_tr()
+
+    """hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
     get_transaction(hash)
 
-    write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,label")
+    write(file="edges.csv", entry="from,to,gasPrice,gasUsed,timeStamp,value,label")
     write(file="nodes.csv", entry="address,label")
 
     fraudulent = load_addresses()
     create_edges(fraudulent)
     create_nodes()
 
-    create_graph()
+    create_graph()"""
 
 
 if __name__ == '__main__':
