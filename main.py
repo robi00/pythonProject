@@ -49,7 +49,6 @@ def store_txs(address: str):
           f"endblock=99999999&page=1&offset=10000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
-    print(address_content)
     result = address_content.get("result")
 
     for transaction in result:
@@ -63,6 +62,8 @@ def store_txs(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
+        print(f"VALUE: {_tx['value']}")
+
         store_transaction(tx=_tx, addr=address)
 
 
