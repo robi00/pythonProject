@@ -13,10 +13,8 @@ import matplotlib.pyplot as plt
 conn = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 mongoDatabase = conn.get_database("MyMongoDB")
 collection = mongoDatabase.get_collection("Etherscan")
-
 list_coll = mongoDatabase.list_collection_names()
 list_len = len(list_coll)
-
 if list_len == 0:
     mongoDatabase.create_collection("Etherscan")
     print("Collection: Etherscan")
@@ -26,7 +24,6 @@ else:
     print("Existing collection deleted")
     mongoDatabase.create_collection("Etherscan")
     print("Collection: Etherscan")
-
 API_KEY = config('API_KEY')
 
 
@@ -44,13 +41,11 @@ def store_transaction(tx: dict, addr: str):
 
 
 def store_txs(address: str):
-    print("IN STORE TXS:" + address)
     url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&" \
           f"endblock=99999999&page=1&offset=10000&sort=desc&apikey={API_KEY}"
     response = requests.get(url)
     address_content = response.json()
     result = address_content.get("result")
-
     for transaction in result:
         _tx = {}
         _tx['hash'] = transaction['hash']
@@ -62,8 +57,6 @@ def store_txs(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
-        print(f"VALUE: {_tx['value']}")
-
         store_transaction(tx=_tx, addr=address)
 
 
@@ -73,7 +66,6 @@ def store_txs_erc20(address: str):
     response = requests.get(url)
     address_content = response.json()
     result = address_content.get("result")
-
     for transaction in result:
         _tx = {}
         _tx['hash'] = transaction['hash']
@@ -91,12 +83,11 @@ def store_txs_erc20(address: str):
 def extract_transactions(addresses: list):
     i = 0
     for address in addresses:
-        print("EXTRACT TRANS: " + address)
         store_txs(address)
         store_txs_erc20(address)
         i += 1
         if i % 3 == 0:
-            time.sleep(1)
+            time.sleep(10)
 
 
 def load_addresses():
@@ -112,7 +103,7 @@ def load_addresses():
 
 
 def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, timeStamp: str, value: str, label: str):
-    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, timeStamp, value, label)
+    ent = "{},{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp, label)
     write("edges.csv", entry=ent)
 
 
@@ -124,23 +115,23 @@ def create_edges(addresses: set):
             toAddr = line[1]
             gasPrice = line[2]
             gasUsed = line[3]
-            timeStamp = line[4]
-            value = line[5]
+            value = line[4]
+            timeStamp = line[5].strip("\n")
             if fromAddr in addresses:  # malicious from address
-                label = '0'
+                labe = '0'
             elif fromAddr not in addresses and toAddr not in addresses:  # onest from and to
-                label = '2'
+                labe = '2'
             else:  # onest from but malicious to -> phishing
-                label = '1'
+                labe = '1'
 
             edge(
                 tx_from=fromAddr,
                 tx_to=toAddr,
                 gasPrice=gasPrice,
                 gasUsed=gasUsed,
-                timeStamp=timeStamp,
                 value=value,
-                label=label
+                timeStamp=timeStamp,
+                label=labe
             )
 
 
@@ -201,7 +192,6 @@ def get_tr():
     for transaction in res:
         tra = transaction['transactions']
         _tx = {}
-        print(f"DENTRO: {tra['from']}")
         _tx['from'] = tra['from']
         _tx['to'] = tra['to']
         _tx['gasPrice'] = tra['gasPrice']
@@ -247,13 +237,13 @@ def create_graph():
         for edge in data:
             edge = edge.split(",")
             from_addr = edge[0]
-            if "0x" in from_addr:
-                f_addr.append(from_addr)
             to_addr = edge[1]
             if "0x" in to_addr:
-                t_addr.append(to_addr)
-        for i in range(len(f_addr) - 1):
-            if f_addr[i] not in t_addr[i]:
+                    f_addr.append(from_addr)
+                    t_addr.append(to_addr)
+
+        for i in range(len(f_addr)-1):
+            if f_addr[i] not in t_addr[i]: # not cyclic transactions
                 g.add_edge(f_addr[i], t_addr[i], weight=1.0, alpha=0.5)  # weight=value
 
     plt.figure(1)
@@ -263,24 +253,24 @@ def create_graph():
 
 
 def main():
-    account1 = "0xa7f72Bf63EDeCa25636F0B13Ec5135296ca2eBb2"
-    account2 = "0xEda5066780dE29D00dfb54581A707ef6F52D8113"
-    account3 = "0x079667f4f7a0B440Ad35ebd780eFd216751f0758"
+    account1 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
+    account2 = "0xF6884686a999f5ae6c1AF03DB92BAB9c6d7DC8De"
+    account3 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
     accounts = [account1, account2, account3]
     extract_transactions(accounts)
-    get_tr()
+    # get_tr()
 
-    """hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
+    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
     get_transaction(hash)
 
-    write(file="edges.csv", entry="from,to,gasPrice,gasUsed,timeStamp,value,label")
+    write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,timeStamp,label")
     write(file="nodes.csv", entry="address,label")
 
     fraudulent = load_addresses()
     create_edges(fraudulent)
     create_nodes()
 
-    create_graph()"""
+    create_graph()
 
 
 if __name__ == '__main__':
