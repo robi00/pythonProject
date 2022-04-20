@@ -84,7 +84,7 @@ def extract_transactions(addresses: list):
     i = 0
     for address in addresses:
         store_txs(address)
-        store_txs_erc20(address)
+        # store_txs_erc20(address)
         i += 1
         if i % 3 == 0:
             time.sleep(10)
@@ -208,6 +208,49 @@ def get_tr():
         )
 
 
+def generate_eth():
+    with open("account1.csv") as a:
+        data = a.readlines()
+        for al in data:
+            al = al.split(",")
+            if "0x" in al[0]:
+                va = al[9]
+                ta = al[2]
+                ent = "{},{}".format(ta, va)
+                write("ETH.csv", entry=ent)
+
+    with open("account2.csv") as b:
+        dataf = b.readlines()
+        for bl in dataf:
+            bl = bl.split(",")
+            if "0x" in bl[0]:
+                vb = bl[9]
+                tb = bl[2]
+                ent = "{},{}".format(tb, vb)
+                write("ETH.csv", entry=ent)
+
+    with open("account3.csv") as c:
+        datafi = c.readlines()
+        for cl in datafi:
+            cl = cl.split(",")
+            if "0x" in cl[0]:
+                vc = cl[9]
+                tc = cl[2]
+                ent = "{},{}".format(tc, vc)
+                write("ETH.csv", entry=ent)
+
+
+def get_timestamp():
+    times = set()
+    with open("ETH.csv") as f:
+        data = f.readlines()
+        for eth in data:
+            eth = eth.split(",")
+            w = eth[0]
+            times.add(w)
+    return times
+
+
 def create_graph():
     g = nx.DiGraph()
     addresses = list()
@@ -233,18 +276,29 @@ def create_graph():
     with open("edges.csv") as f:
         f_addr = []
         t_addr = []
+        timestamp = []
         data = f.readlines()
         for edge in data:
             edge = edge.split(",")
             from_addr = edge[0]
             to_addr = edge[1]
             if "0x" in to_addr:
-                    f_addr.append(from_addr)
-                    t_addr.append(to_addr)
+                f_addr.append(from_addr)
+                t_addr.append(to_addr)
+                timestamp.append(edge[5])
 
-        for i in range(len(f_addr)-1):
-            if f_addr[i] not in t_addr[i]: # not cyclic transactions
-                g.add_edge(f_addr[i], t_addr[i], weight=1.0, alpha=0.5)  # weight=value
+        for i in range(len(f_addr) - 1):
+            if f_addr[i] not in t_addr[i]:  # not cyclic transactions
+                with open("ETH.csv") as f:
+                    data = f.readlines()
+                    for eth in data:
+                        eth = eth.split(",")
+                        if timestamp[i] in eth[0]:
+                            print(f"from: {f_addr[i]}")
+                            print(f"to: {t_addr[i]}")
+                            print(f"timestamp: {timestamp[i]}")
+                            g.add_edge(f_addr[i], t_addr[i], weight=eth[1], alpha=0.5)  # weight=value normalized
+                            print(f"WEIGHT: {eth[1]}")
 
     plt.figure(1)
     pos = nx.planar_layout(g)
@@ -259,6 +313,7 @@ def main():
     accounts = [account1, account2, account3]
     extract_transactions(accounts)
     # get_tr()
+    # generate_eth()
 
     hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
     get_transaction(hash)
