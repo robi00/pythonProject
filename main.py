@@ -217,7 +217,7 @@ def generate_eth():
                 va = al[9]
                 ta = al[2]
                 ent = "{},{}".format(ta, va)
-                write("ETH.csv", entry=ent)
+                write("normal.csv", entry=ent)
 
     with open("account2.csv") as b:
         dataf = b.readlines()
@@ -227,7 +227,7 @@ def generate_eth():
                 vb = bl[9]
                 tb = bl[2]
                 ent = "{},{}".format(tb, vb)
-                write("ETH.csv", entry=ent)
+                write("normal.csv", entry=ent)
 
     with open("account3.csv") as c:
         datafi = c.readlines()
@@ -237,12 +237,12 @@ def generate_eth():
                 vc = cl[9]
                 tc = cl[2]
                 ent = "{},{}".format(tc, vc)
-                write("ETH.csv", entry=ent)
+                write("normal.csv", entry=ent)
 
 
 def get_timestamp():
     times = set()
-    with open("ETH.csv") as f:
+    with open("normal.csv") as f:
         data = f.readlines()
         for eth in data:
             eth = eth.split(",")
@@ -289,7 +289,7 @@ def create_graph():
 
         for i in range(len(f_addr) - 1):
             if f_addr[i] not in t_addr[i]:  # not cyclic transactions
-                with open("ETH.csv") as f:
+                with open("normal.csv") as f:
                     data = f.readlines()
                     for eth in data:
                         eth = eth.split(",")
@@ -298,7 +298,6 @@ def create_graph():
                             print(f"to: {t_addr[i]}")
                             print(f"timestamp: {timestamp[i]}")
                             g.add_edge(f_addr[i], t_addr[i], weight=eth[1], alpha=0.5)  # weight=value normalized
-                            print(f"WEIGHT: {eth[1]}")
 
     plt.figure(1)
     pos = nx.planar_layout(g)
