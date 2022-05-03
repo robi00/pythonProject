@@ -294,9 +294,6 @@ def create_graph():
                     for eth in data:
                         eth = eth.split(",")
                         if timestamp[i] in eth[0]:
-                            print(f"from: {f_addr[i]}")
-                            print(f"to: {t_addr[i]}")
-                            print(f"timestamp: {timestamp[i]}")
                             g.add_edge(f_addr[i], t_addr[i], weight=eth[1], alpha=0.5)  # weight=value normalized
 
     plt.figure(1)
