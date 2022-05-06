@@ -80,14 +80,21 @@ def store_txs_erc20(address: str):
         store_transaction(tx=_tx, addr=address)
 
 
-def extract_transactions(addresses: list):
+def extract_transactions(address):
+    collections = mongoDatabase.list_collection_names()
+    len_list = len(collections)
+    if len_list != 0:
+        print("Existing collection")
+        mongoDatabase.Etherscan.drop()
+        print("Existing collection deleted")
+        mongoDatabase.create_collection("Etherscan")
+        print("Collection: Etherscan")
     i = 0
-    for address in addresses:
-        store_txs(address)
-        # store_txs_erc20(address)
-        i += 1
-        if i % 3 == 0:
-            time.sleep(10)
+    store_txs(address)
+    # store_txs_erc20(address)
+    i += 1
+    if i % 3 == 0:
+        time.sleep(10)
 
 
 def load_addresses():
@@ -209,46 +216,22 @@ def get_tr():
 
 
 def generate_eth():
-    with open("account1.csv") as a:
-        data = a.readlines()
-        for al in data:
-            al = al.split(",")
-            if "0x" in al[0]:
-                va = al[9]
-                ta = al[2]
-                ent = "{},{}".format(ta, va)
-                write("normal.csv", entry=ent)
+    filenames_fraud = []
+    for n in range(1, 12):
+        account_number = f"account{n}.csv"
+        filenames_fraud.append(account_number)
 
-    with open("account2.csv") as b:
-        dataf = b.readlines()
-        for bl in dataf:
-            bl = bl.split(",")
-            if "0x" in bl[0]:
-                vb = bl[9]
-                tb = bl[2]
-                ent = "{},{}".format(tb, vb)
-                write("normal.csv", entry=ent)
-
-    with open("account3.csv") as c:
-        datafi = c.readlines()
-        for cl in datafi:
-            cl = cl.split(",")
-            if "0x" in cl[0]:
-                vc = cl[9]
-                tc = cl[2]
-                ent = "{},{}".format(tc, vc)
-                write("normal.csv", entry=ent)
-
-
-def get_timestamp():
-    times = set()
-    with open("normal.csv") as f:
-        data = f.readlines()
-        for eth in data:
-            eth = eth.split(",")
-            w = eth[0]
-            times.add(w)
-    return times
+    for fname in filenames_fraud:
+        print(f"FILE_NAME: {fname}")
+        with open(fname) as a:
+            data = a.readlines()
+            for line in data:
+                line = line.split(",")
+                if "0x" in line[0]:
+                    value = line[9]
+                    timestamp = line[2]
+                    ent = "{},{}".format(timestamp, value)
+                    write("val_normalized.csv", entry=ent)
 
 
 def create_graph():
@@ -289,7 +272,7 @@ def create_graph():
 
         for i in range(len(f_addr) - 1):
             if f_addr[i] not in t_addr[i]:  # not cyclic transactions
-                with open("normal.csv") as f:
+                with open("val_normalized.csv") as f:
                     data = f.readlines()
                     for eth in data:
                         eth = eth.split(",")
@@ -299,29 +282,49 @@ def create_graph():
     plt.figure(1)
     pos = nx.planar_layout(g)
     nx.draw_networkx(g, pos, node_size=20, node_color=color_map, with_labels=False)
+    print("Number of nodes =", g.number_of_nodes())
+    print("Number of edges =", g.number_of_edges())
     plt.show()
 
 
 def main():
-    account1 = "0x03B70DC31abF9cF6C1cf80bfEEB322E8D3DBB4ca"
-    account2 = "0xF6884686a999f5ae6c1AF03DB92BAB9c6d7DC8De"
-    account3 = "0x9f26aE5cd245bFEeb5926D61497550f79D9C6C1c"
-    accounts = [account1, account2, account3]
-    extract_transactions(accounts)
-    # get_tr()
-    # generate_eth()
+    # fraudulent accounts
+    addresses = list()
+    with open("addresses.csv") as f:
+        datafile = f.readlines()
+        for address in datafile:
+            address = address.split("\t")
+            if "0x" in address[0]:
+                if "0" not in address[3]:
+                    addresses.append(address[0])
 
-    hash = "0x6bb7039bd0bff1083c7d651ec32065239e574c3c8034a44ec6859f87b9e01dc9"
-    get_transaction(hash)
+    for n in range(500):  # 500 fraudulent accounts
+        if os.path.exists("edges.csv"):
+            os.remove("edges.csv")
+        if os.path.exists("nodes.csv"):
+            os.remove("nodes.csv")
+        if os.path.exists("transactions.csv"):
+            os.remove("transactions.csv")
+        if os.path.exists("val_normalized.csv"):
+            os.remove("val_normalized.csv")
 
-    write(file="edges.csv", entry="from,to,gasPrice,gasUsed,value,timeStamp,label")
-    write(file="nodes.csv", entry="address,label")
+        print(f"ADDRESSES TO SEARCH{n + 1}: {addresses[n]}")
+        extract_transactions(addresses[n])
+        get_tr()
+        generate_eth()
 
-    fraudulent = load_addresses()
-    create_edges(fraudulent)
-    create_nodes()
+        fraudulent = load_addresses()
+        create_edges(fraudulent)
+        create_nodes()
 
-    create_graph()
+        with open("edges.csv") as f:
+            datafile = f.readlines()
+            for data in datafile:
+                data = data.split(",")
+                print(f"DATA: {data}")
+
+        print(f"Account: {addresses[n]}")
+        create_graph()
 
 
 if __name__ == '__main__':
