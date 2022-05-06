@@ -37,7 +37,7 @@ def store_transaction(tx: dict, addr: str):
     trans = {'address': addr, 'transactions': tx}
     mongoDatabase.Etherscan.insert_one(trans)
     hash = tx['hash']
-    print(f"Entering transaction {hash} for the account {addr}")
+    # print(f"Entering transaction {hash} for the account {addr}")
 
 
 def store_txs(address: str):
@@ -84,11 +84,8 @@ def extract_transactions(address):
     collections = mongoDatabase.list_collection_names()
     len_list = len(collections)
     if len_list != 0:
-        print("Existing collection")
         mongoDatabase.Etherscan.drop()
-        print("Existing collection deleted")
         mongoDatabase.create_collection("Etherscan")
-        print("Collection: Etherscan")
     i = 0
     store_txs(address)
     # store_txs_erc20(address)
@@ -217,12 +214,11 @@ def get_tr():
 
 def generate_eth():
     filenames_fraud = []
-    for n in range(1, 12):
+    for n in range(1, 501):
         account_number = f"account{n}.csv"
         filenames_fraud.append(account_number)
 
     for fname in filenames_fraud:
-        print(f"FILE_NAME: {fname}")
         with open(fname) as a:
             data = a.readlines()
             for line in data:
@@ -308,7 +304,6 @@ def main():
         if os.path.exists("val_normalized.csv"):
             os.remove("val_normalized.csv")
 
-        print(f"ADDRESSES TO SEARCH{n + 1}: {addresses[n]}")
         extract_transactions(addresses[n])
         get_tr()
         generate_eth()
@@ -317,11 +312,6 @@ def main():
         create_edges(fraudulent)
         create_nodes()
 
-        with open("edges.csv") as f:
-            datafile = f.readlines()
-            for data in datafile:
-                data = data.split(",")
-                print(f"DATA: {data}")
 
         print(f"Account: {addresses[n]}")
         create_graph()
