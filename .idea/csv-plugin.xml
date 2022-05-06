@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\acc1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\account1.csv">
           <value>
             <Attribute>
@@ -67,6 +74,13 @@
           </value>
         </entry>
         <entry key="\fraud_accounts.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\honests.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

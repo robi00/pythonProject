@@ -212,13 +212,30 @@ def get_tr():
         )
 
 
-def generate_eth():
+def generate_eth_fraud():
     filenames_fraud = []
     for n in range(1, 501):
         account_number = f"account{n}.csv"
         filenames_fraud.append(account_number)
 
     for fname in filenames_fraud:
+        with open(fname) as a:
+            data = a.readlines()
+            for line in data:
+                line = line.split(",")
+                if "0x" in line[0]:
+                    value = line[9]
+                    timestamp = line[2]
+                    ent = "{},{}".format(timestamp, value)
+                    write("val_normalized.csv", entry=ent)
+
+def generate_eth_honest():
+    filenames_honest = []
+    for n in range(1, 501):
+        account_number = f"acc{n}.csv"
+        filenames_honest.append(account_number)
+
+    for fname in filenames_honest:
         with open(fname) as a:
             data = a.readlines()
             for line in data:
@@ -283,7 +300,7 @@ def create_graph():
     plt.show()
 
 
-def main():
+def fraudulent_graph():
     # fraudulent accounts
     addresses = list()
     with open("addresses.csv") as f:
@@ -306,15 +323,50 @@ def main():
 
         extract_transactions(addresses[n])
         get_tr()
-        generate_eth()
+        generate_eth_fraud()
 
         fraudulent = load_addresses()
         create_edges(fraudulent)
         create_nodes()
 
+        print(f"Account: {addresses[n]}")
+        create_graph()
+
+
+def honest_graph():
+    addresses = list()
+    with open("honests.csv") as f:
+        datafile = f.readlines()
+        for address in datafile:
+            address = address.split("\t")
+            if "0x" in address[1]:
+                addresses.append(address[1])
+    for n in range(500):
+        if os.path.exists("edges.csv"):
+            os.remove("edges.csv")
+        if os.path.exists("nodes.csv"):
+            os.remove("nodes.csv")
+        if os.path.exists("transactions.csv"):
+            os.remove("transactions.csv")
+        if os.path.exists("val_normalized.csv"):
+            os.remove("val_normalized.csv")
+            
+        extract_transactions(addresses[n])
+        get_tr()
+        generate_eth_honest()
+
+        fraudulent = load_addresses()
+        create_edges(fraudulent)
+        create_nodes()
 
         print(f"Account: {addresses[n]}")
         create_graph()
+
+
+def main():
+    # fraudulent_graph()
+
+    honest_graph()
 
 
 if __name__ == '__main__':
