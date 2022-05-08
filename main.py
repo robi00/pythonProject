@@ -95,14 +95,14 @@ def extract_transactions(address):
 
 
 def load_addresses():
-    addresses = set()
+    addresses = list()
     with open("addresses.csv") as f:
         datafile = f.readlines()
         for address in datafile:
             address = address.split("\t")
             address = address[0]
             if "0x" in address:  # check
-                addresses.add(address)
+                addresses.append(address)
     return addresses
 
 
@@ -111,7 +111,7 @@ def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, timeStamp: str, 
     write("edges.csv", entry=ent)
 
 
-def create_edges(addresses: set):
+def create_edges(addresses: list):
     with open("transactions.csv") as f:
         for line in f:
             line = line.split(",")
@@ -229,6 +229,7 @@ def generate_eth_fraud():
                     ent = "{},{}".format(timestamp, value)
                     write("val_normalized.csv", entry=ent)
 
+
 def generate_eth_honest():
     filenames_honest = []
     for n in range(1, 501):
@@ -310,7 +311,6 @@ def fraudulent_graph():
             if "0x" in address[0]:
                 if "0" not in address[3]:
                     addresses.append(address[0])
-
     for n in range(500):  # 500 fraudulent accounts
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
@@ -329,7 +329,7 @@ def fraudulent_graph():
         create_edges(fraudulent)
         create_nodes()
 
-        print(f"Account: {addresses[n]}")
+        print(f"Account{n + 1}: {addresses[n]}")
         create_graph()
 
 
@@ -350,23 +350,23 @@ def honest_graph():
             os.remove("transactions.csv")
         if os.path.exists("val_normalized.csv"):
             os.remove("val_normalized.csv")
-            
+
         extract_transactions(addresses[n])
         get_tr()
         generate_eth_honest()
 
-        fraudulent = load_addresses()
-        create_edges(fraudulent)
+        fraudolent = load_addresses()
+        create_edges(fraudolent)
         create_nodes()
 
-        print(f"Account: {addresses[n]}")
+        print(f"Account{n + 1}: {addresses[n]}")
         create_graph()
 
 
 def main():
-    # fraudulent_graph()
+    fraudulent_graph()
 
-    honest_graph()
+    # honest_graph()
 
 
 if __name__ == '__main__':

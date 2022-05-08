@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\acc27.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\account1.csv">
           <value>
             <Attribute>
@@ -24,7 +31,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\account1_erc.csv">
+        <entry key="\account11.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -38,7 +45,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\account2_erc.csv">
+        <entry key="\account26.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\account27.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -52,7 +66,35 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\account3_erc.csv">
+        <entry key="\account31.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\account35.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\account43.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\account5.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\account67.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -73,13 +115,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\fraud_accounts.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\honests.csv">
           <value>
             <Attribute>
@@ -94,21 +129,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\normal.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\transactions.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\val_normalized.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
