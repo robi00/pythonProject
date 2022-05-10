@@ -17,6 +17,27 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\acc105.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\acc106.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\acc116.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\acc27.csv">
           <value>
             <Attribute>
@@ -108,13 +129,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\edges.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\honests.csv">
           <value>
             <Attribute>
@@ -122,7 +136,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\nodes.csv">
+        <entry key="\numbers_honest.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

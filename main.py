@@ -57,6 +57,10 @@ def store_txs(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "ETH"
+        if transaction['from'] == address:
+            _tx['incoming'] = "no"
+        else:
+            _tx['incoming'] = "yes"
         store_transaction(tx=_tx, addr=address)
 
 
@@ -77,6 +81,10 @@ def store_txs_erc20(address: str):
         _tx['value'] = transaction['value']
         _tx['contractAddress'] = ""
         _tx['tokenSymbol'] = "USDT"
+        if transaction['from'] == address:
+            _tx['incoming'] = "no"
+        else:
+            _tx['incoming'] = "yes"
         store_transaction(tx=_tx, addr=address)
 
 
@@ -106,8 +114,8 @@ def load_addresses():
     return addresses
 
 
-def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, timeStamp: str, value: str, label: str):
-    ent = "{},{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp, label)
+def edge(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, timeStamp: str, value: str, label: str, incoming: str):
+    ent = "{},{},{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp, label, incoming)
     write("edges.csv", entry=ent)
 
 
@@ -120,7 +128,8 @@ def create_edges(addresses: list):
             gasPrice = line[2]
             gasUsed = line[3]
             value = line[4]
-            timeStamp = line[5].strip("\n")
+            timeStamp = line[5]
+            incoming = line[6].strip("\n")
             if fromAddr in addresses:  # malicious from address
                 labe = '0'
             elif fromAddr not in addresses and toAddr not in addresses:  # onest from and to
@@ -135,7 +144,8 @@ def create_edges(addresses: list):
                 gasUsed=gasUsed,
                 value=value,
                 timeStamp=timeStamp,
-                label=labe
+                label=labe,
+                incoming=incoming
             )
 
 
@@ -145,7 +155,7 @@ def create_nodes():
         datafile = f.readlines()
         for label in datafile:
             label = label.split(",")
-            if label[6] == '0\n':
+            if label[6] == '0':
                 addr_from = label[0]
                 if "0x" in addr_from and addr_from not in addresses:
                     addresses.add(addr_from)
@@ -156,7 +166,7 @@ def create_nodes():
                     addresses.add(addr_to)
                     entry = "{},{}".format(addr_to, "0")
                     write("nodes.csv", entry)
-            elif label[6] == '1\n':
+            elif label[6] == '1':
                 addr_from = label[0]
                 if "0x" in addr_from and addr_from not in addresses:
                     addresses.add(addr_from)
@@ -186,8 +196,8 @@ def get_transaction(hash: str) -> dict:
         print(f"RECORD: {record}")
 
 
-def tr(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, timeStamp: str):
-    ent = "{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp)
+def tr(tx_from: str, tx_to: str, gasPrice: str, gasUsed: str, value: str, timeStamp: str, incoming: str):
+    ent = "{},{},{},{},{},{},{}".format(tx_from, tx_to, gasPrice, gasUsed, value, timeStamp, incoming)
     write("transactions.csv", entry=ent)
 
 
@@ -202,6 +212,7 @@ def get_tr():
         _tx['gasUsed'] = tra['gasUsed']
         _tx['timeStamp'] = tra['timeStamp']
         _tx['value'] = tra['value']
+        _tx['incoming'] = tra['incoming']
         tr(
             tx_from=_tx['from'],
             tx_to=_tx['to'],
@@ -209,6 +220,7 @@ def get_tr():
             gasUsed=_tx['gasUsed'],
             timeStamp=_tx['timeStamp'],
             value=_tx['value'],
+            incoming=_tx['incoming'],
         )
 
 
@@ -248,7 +260,18 @@ def generate_eth_honest():
                     write("val_normalized.csv", entry=ent)
 
 
-def create_graph():
+def numbers(address: str, nodes: int, edges: int, incoming: int, weight_in: int, weight_out: int):
+    outcoming = edges - incoming
+    percincoming = (incoming / edges) * 100
+    print(f"incoming: {percincoming}")
+    percoutcoming = 100 - percincoming
+    ent = "{},{},{},{},{},{},{},{},{}".format(address, nodes, edges, incoming, outcoming, percincoming, percoutcoming,
+                                              weight_in, weight_out)
+    write("numbers_honest.csv", entry=ent)
+    # write("numbers_fraud.csv", entry=ent)
+
+
+def create_graph(addr):
     g = nx.DiGraph()
     addresses = list()
     color_map = []
@@ -271,37 +294,62 @@ def create_graph():
                     color_map.append('blue')
 
     with open("edges.csv") as f:
-        f_addr = []
-        t_addr = []
-        timestamp = []
+        f_addr = list()
+        t_addr = list()
+        timestamp = list()
+        num_incoming = list()
+        number = list()
+        weight_in = 0
+        weight_out = 0
         data = f.readlines()
         for edge in data:
             edge = edge.split(",")
             from_addr = edge[0]
             to_addr = edge[1]
+            num = edge[7].strip("\n")
+            number.append(num)
             if "0x" in to_addr:
                 f_addr.append(from_addr)
                 t_addr.append(to_addr)
                 timestamp.append(edge[5])
+                if "yes" in num:
+                    num_incoming.append(num)
 
-        for i in range(len(f_addr) - 1):
+        for i in range(len(f_addr)):
             if f_addr[i] not in t_addr[i]:  # not cyclic transactions
                 with open("val_normalized.csv") as f:
                     data = f.readlines()
                     for eth in data:
                         eth = eth.split(",")
                         if timestamp[i] in eth[0]:
-                            g.add_edge(f_addr[i], t_addr[i], weight=eth[1], alpha=0.5)  # weight=value normalized
+                            g.add_edge(f_addr[i], t_addr[i], weight=eth[1].strip("\n"),
+                                       alpha=0.5)  # weight=value normalized
+                            if "yes" in number[i]:
+                                weight_in += float(eth[1].strip('"\n'))
+                            elif "no" in number[i]:
+                                weight_out += float(eth[1].strip('"\n'))
 
     plt.figure(1)
     pos = nx.planar_layout(g)
     nx.draw_networkx(g, pos, node_size=20, node_color=color_map, with_labels=False)
-    print("Number of nodes =", g.number_of_nodes())
-    print("Number of edges =", g.number_of_edges())
-    plt.show()
+    print(f"Number of nodes = {len(addresses)}")
+    print(f"Number of edges = {len(f_addr)}")
+    numbers(
+        address=addr,
+        nodes=len(addresses),
+        edges=len(f_addr),
+        incoming=len(num_incoming),
+        weight_in=weight_in,
+        weight_out=weight_out
+    )
+    # plt.show()
 
 
 def fraudulent_graph():
+    if os.path.exists("numbers_fraud.csv"):
+        os.remove("numbers_fraud.csv")
+        write("numbers_fraud.csv", entry="address,nodes,edges,n_edges_incoming,n_edges_outcoming,percentage_incoming,"
+                                         "percentage_outcoming,total_weight_in,total_weight_out")
     # fraudulent accounts
     addresses = list()
     with open("addresses.csv") as f:
@@ -330,10 +378,14 @@ def fraudulent_graph():
         create_nodes()
 
         print(f"Account{n + 1}: {addresses[n]}")
-        create_graph()
+        create_graph(addresses[n])
 
 
 def honest_graph():
+    """if os.path.exists("numbers_honest.csv"):
+        os.remove("numbers_honest.csv")
+        write("numbers_honest.csv", entry="address,nodes,edges,n_edges_incoming,n_edges_outcoming,percentage_incoming,"
+                                         "percentage_outcoming,total_weight_in,total_weight_out")"""
     addresses = list()
     with open("honests.csv") as f:
         datafile = f.readlines()
@@ -341,7 +393,7 @@ def honest_graph():
             address = address.split("\t")
             if "0x" in address[1]:
                 addresses.append(address[1])
-    for n in range(500):
+    for n in range(407, 500):
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -360,13 +412,13 @@ def honest_graph():
         create_nodes()
 
         print(f"Account{n + 1}: {addresses[n]}")
-        create_graph()
+        create_graph(addresses[n])
 
 
 def main():
-    fraudulent_graph()
+    # fraudulent_graph()
 
-    # honest_graph()
+    honest_graph()
 
 
 if __name__ == '__main__':
