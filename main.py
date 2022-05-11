@@ -346,7 +346,7 @@ def create_graph(addr):
         weight_in=weight_in,
         weight_out=weight_out
     )
-    # plt.show()
+    plt.show()
 
 
 def fraudulent_graph():
@@ -363,7 +363,7 @@ def fraudulent_graph():
             if "0x" in address[0]:
                 if "0" not in address[3]:
                     addresses.append(address[0])
-    for n in range(230, 500):  # 500 fraudulent accounts
+    for n in range(500):  # 500 fraudulent accounts
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):

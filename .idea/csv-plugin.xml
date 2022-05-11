@@ -136,6 +136,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\numbers_fraud.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\numbers_honest.csv">
           <value>
             <Attribute>
