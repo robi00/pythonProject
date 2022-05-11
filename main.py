@@ -261,14 +261,18 @@ def generate_eth_honest():
 
 
 def numbers(address: str, nodes: int, edges: int, incoming: int, weight_in: int, weight_out: int):
-    outcoming = edges - incoming
-    percincoming = (incoming / edges) * 100
-    print(f"incoming: {percincoming}")
-    percoutcoming = 100 - percincoming
+    if edges == 0:
+        outcoming = 0
+        percincoming = 0
+        percoutcoming = 0
+    else:
+        outcoming = edges - incoming
+        percincoming = (incoming / edges) * 100
+        percoutcoming = 100 - percincoming
     ent = "{},{},{},{},{},{},{},{},{}".format(address, nodes, edges, incoming, outcoming, percincoming, percoutcoming,
                                               weight_in, weight_out)
-    write("numbers_honest.csv", entry=ent)
-    # write("numbers_fraud.csv", entry=ent)
+    # write("numbers_honest.csv", entry=ent)
+    write("numbers_fraud.csv", entry=ent)
 
 
 def create_graph(addr):
@@ -346,10 +350,10 @@ def create_graph(addr):
 
 
 def fraudulent_graph():
-    if os.path.exists("numbers_fraud.csv"):
+    """if os.path.exists("numbers_fraud.csv"):
         os.remove("numbers_fraud.csv")
         write("numbers_fraud.csv", entry="address,nodes,edges,n_edges_incoming,n_edges_outcoming,percentage_incoming,"
-                                         "percentage_outcoming,total_weight_in,total_weight_out")
+                                         "percentage_outcoming,total_weight_in,total_weight_out")"""
     # fraudulent accounts
     addresses = list()
     with open("addresses.csv") as f:
@@ -359,7 +363,7 @@ def fraudulent_graph():
             if "0x" in address[0]:
                 if "0" not in address[3]:
                     addresses.append(address[0])
-    for n in range(500):  # 500 fraudulent accounts
+    for n in range(230, 500):  # 500 fraudulent accounts
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -393,7 +397,7 @@ def honest_graph():
             address = address.split("\t")
             if "0x" in address[1]:
                 addresses.append(address[1])
-    for n in range(407, 500):
+    for n in range(500):
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -416,9 +420,9 @@ def honest_graph():
 
 
 def main():
-    # fraudulent_graph()
+    fraudulent_graph()
 
-    honest_graph()
+    # honest_graph()
 
 
 if __name__ == '__main__':
