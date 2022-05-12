@@ -3,13 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="D:\UNI\tesi\fraudulent_accounts\account11.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\acc1.csv">
           <value>
             <Attribute>
@@ -38,7 +31,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\acc27.csv">
+        <entry key="\acc22.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -46,13 +39,6 @@
           </value>
         </entry>
         <entry key="\account1.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\account11.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -80,20 +66,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\account3.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\account31.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\account35.csv">
           <value>
             <Attribute>
@@ -115,17 +87,17 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\account67.csv">
+        <entry key="\honest_1-0xda9dfa130df4de4673b89022ee50ff26f6ea73cf.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\addresses.csv">
+        <entry key="\honest_22-0xfc2a975ccd1732e1e7bc10d9521355cfd4f13104.csv">
           <value>
             <Attribute>
-              <option name="separator" value="&#9;" />
+              <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>

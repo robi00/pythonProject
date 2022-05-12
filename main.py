@@ -364,6 +364,15 @@ def fraudulent_graph():
                 if "0" not in address[3]:
                     addresses.append(address[0])
     for n in range(500):  # 500 fraudulent accounts
+        """with open(f"account{n+1}.csv") as f:
+            data = f.readlines()
+            for line in data:
+                line = line.split(",")
+                if "0x" in line[0]:
+                    tx_from = line[4]
+                    tx_to = line[5]
+                    value = line[9]
+                    write(f"{n+1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from,tx_to,value))"""
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -398,6 +407,15 @@ def honest_graph():
             if "0x" in address[1]:
                 addresses.append(address[1])
     for n in range(500):
+        """with open(f"acc{n + 1}.csv") as f:
+            data = f.readlines()
+            for line in data:
+                line = line.split(",")
+                if "0x" in line[0]:
+                    tx_from = line[4]
+                    tx_to = line[5]
+                    value = line[9]
+                    write(f"honest_{n + 1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from, tx_to, value))"""
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -420,9 +438,10 @@ def honest_graph():
 
 
 def main():
-    fraudulent_graph()
 
-    # honest_graph()
+    # fraudulent_graph()
+
+    honest_graph()
 
 
 if __name__ == '__main__':
