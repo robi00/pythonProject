@@ -224,41 +224,6 @@ def get_tr():
         )
 
 
-def generate_eth_fraud():
-    filenames_fraud = []
-    for n in range(1, 501):
-        account_number = f"account{n}.csv"
-        filenames_fraud.append(account_number)
-
-    for fname in filenames_fraud:
-        with open(fname) as a:
-            data = a.readlines()
-            for line in data:
-                line = line.split(",")
-                if "0x" in line[0]:
-                    value = line[9]
-                    timestamp = line[2]
-                    ent = "{},{}".format(timestamp, value)
-                    write("val_normalized.csv", entry=ent)
-
-
-def generate_eth_honest():
-    filenames_honest = []
-    for n in range(1, 501):
-        account_number = f"acc{n}.csv"
-        filenames_honest.append(account_number)
-
-    for fname in filenames_honest:
-        with open(fname) as a:
-            data = a.readlines()
-            for line in data:
-                line = line.split(",")
-                if "0x" in line[0]:
-                    value = line[9]
-                    timestamp = line[2]
-                    ent = "{},{}".format(timestamp, value)
-                    write("val_normalized.csv", entry=ent)
-
 
 def numbers(address: str, nodes: int, edges: int, incoming: int, weight_in: int, weight_out: int):
     if edges == 0:
@@ -361,9 +326,79 @@ def fraudulent_graph():
         for address in datafile:
             address = address.split("\t")
             if "0x" in address[0]:
-                if "0" not in address[3]:
-                    addresses.append(address[0])
-    for n in range(500):  # 500 fraudulent accounts
+                if "0x4639cd8cd52ec1cf2e496a606ce28d8afb1c792f" not in address[0] \
+                        and "0x64f0d720ce8b97ba44cd002005d2dfa3186c0580" not in address[0]\
+                        and "0x0c8b740e3377f2be7a108aeba6a2f660588c728d" not in address[0]\
+                        and "0x9e19462787be36e5e3676ad2428b26599bf9866c" not in address[0]\
+                        and "0x44525c8dd44b9d470937cc9e7a0275eb14c7b01d" not in address[0]\
+                        and "0xbfa82fbe0e66d8e2b7dcc16328db9ecd70533d13" not in address[0]\
+                        and "0x8e1701e9509250d808eeca648feb1b8d7eed0704" not in address[0]\
+                        and "0xb547027a4ccd46ec98199fa88aaedf5aa981db26" not in address[0]\
+                        and "0xe0787aabbd6ee01e55f98647673552885d54eb06" not in address[0]\
+                        and "0x54ff8a2d0a94d4652cfa0f91e1af092e718ffb1b" not in address[0]\
+                        and "0x219b9040eb7d8d8c2e8e84b87ce9ac1c83071980" not in address[0]\
+                        and "0x1bd913bbade46bf5ad8b1e5d117701fbeb078228" not in address[0]\
+                        and "0x65440e4ce8a9a596a20ec8f910dfc8b1a20c5f7a" not in address[0]\
+                        and "0x9477f48a278909a94d8cd9480dfa85d07103f004" not in address[0]\
+                        and "0x4a008b542165fec7ec3343a35ceed6bc4f6b2280" not in address[0]\
+                        and "0xf2effc1cd320ff062bae8649d150dbea3cb6b189" not in address[0]\
+                        and "0x4711c198e6f04c02413794568990b6a835e8ead9" not in address[0]\
+                        and "0xb507ebc4c6b65a11502fe5f20f8ceebc7e155fb4" not in address[0]\
+                        and "0xb15882a04e840946cb12b41bd070dfe7b1486f93" not in address[0]\
+                        and "0xb197af2df029e3367316adbea2f871fdb011ccca" not in address[0]\
+                        and "0xa77db707916adeff81042ca57656931ccd8f428e" not in address[0]\
+                        and "0x964432e4cfdf1463167d21815bcf9463cf19ea49" not in address[0]\
+                        and "0xeb17037df15f171163d82c586c5b65ef112924ca" not in address[0]\
+                        and "0x388cf3c02c034e7fe8ef164a2b414534fc212119" not in address[0]\
+                        and "0x02fd82cba3bae39484d5eb7f75b5f3d5f418c691" not in address[0]\
+                        and "0x514efa2ecc1be6228e46f45999dee7f1e9ed7b9a" not in address[0]\
+                        and "0x1ea3ecc937bae79353d198db2cdab1e5cbe625dd" not in address[0]\
+                        and "0x2306934ca884caa042dc595371003093092b2bbf" not in address[0]\
+                        and "0x69bbf9a44b46083dad05d070422aaeafaca3204c" not in address[0]\
+                        and "0x0913e0169f5129185c3934920d3cf6e5f56bd3be" not in address[0]\
+                        and "0x27f97bc09a4e28d5935a08e2810b3e3c94f04220" not in address[0]\
+                        and "0xff7c3b7f4e4260097a33c9dcc291b9d1baf2edb5" not in address[0]\
+                        and "0x9c51699b4cd43ba4f6bc81d70b21291b63e6d130" not in address[0]\
+                        and "0x5f5729010c873232f0ef6a68dca7455cc11de0e2" not in address[0]\
+                        and "0xa2065164a26ecd3775dcf22510ad1d2daef8bd2a" not in address[0]\
+                        and "0x113acf282eeb4d71bec61ad83e934bf75bf8253f" not in address[0]\
+                        and "0x8f9a8dc65a423c7dec9261aa6010db738407c879" not in address[0]\
+                        and "0x093fad33c3ff3534428fd18126235e1e44fa0d19" not in address[0]\
+                        and "0x4c334f280f9e440788b66c4e5260c03e4477267a" not in address[0]\
+                        and "0x3c0470b476aa3bf615bc828a6b2006aabab440da" not in address[0]\
+                        and "0xb101f0eb0a8938769d4c3fd4f933b11627ca3768" not in address[0]\
+                        and "0x02745ad75e786f0b2efbd99504e22c3cace354c1" not in address[0]\
+                        and "0x52e8ebf98ef95d373d29041182830bf13c52588f" not in address[0]\
+                        and "0x0aabebdabc7640410af5d901d4e460f174a4c946" not in address[0]\
+                        and "0x34278f6f40079eae344cbac61a764bcf85afc949" not in address[0]\
+                        and "0x2ceee24f8d03fc25648c68c8e6569aa0512f6ac3" not in address[0]\
+                        and "0x6a7c5cc282a0a437eb6d7dc5beb304f961ac6411" not in address[0]\
+                        and "0x003eb9c77b5b896fcc27adead606d23def34510e" not in address[0]\
+                        and "0x1c3e61c8825bf58303b1ac3350843faa01de22bd" not in address[0]\
+                        and "0x96036e9b51f03cabb6fe30daad1544a73f795efc" not in address[0]\
+                        and "0x1412eca9dc7daef60451e3155bb8dbf9da349933" not in address[0]\
+                        and "0xf9d25eb4c75ed744596392cf89074afaa43614a8" not in address[0]\
+                        and "0x16b3dd2970ad3f19c6068c65777530830d33773e" not in address[0]\
+                        and "0xf97bd29b8ee6e246eb57eecf5d0e8486366113fb" not in address[0]\
+                        and "0xe44c8ee0622647d2563a8b2732941772328a751b" not in address[0]\
+                        and "0x402db7bc77c259ce3fe639b1d5c6cd94eb35547c" not in address[0]\
+                        and "0x4a96e9b57a229d94c0c28950355a72fa9e70aae3" not in address[0]\
+                        and "0xefef14c36c1f2de2ca3772ba9539b6a58cfd562c" not in address[0]\
+                        and "0x50228d83eeb60f31f6e58a0bd608228e9a17fe03" not in address[0]\
+                        and "0xf2bad87c0d0ea8bda69c722368df4f79d92ee6c9" not in address[0]\
+                        and "0x6642cec9d02e4e669103a3ed4f3505f437b8fe73" not in address[0]\
+                        and "0x903bb9cd3a276d8f18fa6efed49b9bc52ccf06e5" not in address[0]\
+                        and "0x70305B080eFc49eB5DFb9bdA78Aea516c398f804" not in address[0]\
+                        and "0xe8868e87aaa4a0d0751691f9f33b0e5da7127039" not in address[0]\
+                        and "0x6Ef982f9E7F09d4bF4a70398707c82970a6Dc31E" not in address[0]\
+                        and "0x0d4f74c538613ed6e6c8c1bc8896ecfd45f5ef23" not in address[0]\
+                        and "0x2bca419e570b1620b5e922fc005e806453affc83" not in address[0]\
+                        and "0xe4ffd96b5e6d2b6cdb91030c48cc932756c951b5" not in address[0]\
+                        and "0x34959919244b18128d084834dba11f0c91732ede" not in address[0]:
+                    if int(address[3].strip("\n")) >= 50:
+                        addresses.append(address[0])
+    for n in range(396, 500):  # 500 fraudulent accounts
+        print(f"Account{n + 1}: {addresses[n]}")
         """with open(f"account{n+1}.csv") as f:
             data = f.readlines()
             for line in data:
@@ -372,7 +407,7 @@ def fraudulent_graph():
                     tx_from = line[4]
                     tx_to = line[5]
                     value = line[9]
-                    write(f"{n+1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from,tx_to,value))"""
+                    write(f"{n+1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from,tx_to,value))
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -384,14 +419,23 @@ def fraudulent_graph():
 
         extract_transactions(addresses[n])
         get_tr()
-        generate_eth_fraud()
+        for _ in addresses:
+            with open(f"export-{addresses[n]}.csv") as a:
+                data = a.readlines()
+                for line in data:
+                    line = line.split(",")
+                    if "0x" in line[0]:
+                        value = line[9]
+                        timestamp = line[2]
+                        ent = "{},{}".format(timestamp, value)
+                        write("val_normalized.csv", entry=ent)
 
         fraudulent = load_addresses()
         create_edges(fraudulent)
         create_nodes()
 
         print(f"Account{n + 1}: {addresses[n]}")
-        create_graph(addresses[n])
+        create_graph(addresses[n])"""
 
 
 def honest_graph():
@@ -405,8 +449,27 @@ def honest_graph():
         for address in datafile:
             address = address.split("\t")
             if "0x" in address[1]:
-                addresses.append(address[1])
+                if int(address[4].strip("\n")) >= 50:
+                    if "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2" not in address[1] \
+                            and "0x267be1c1d684f78cb4f6a176c4911b741e4ffdc0" not in address[1] \
+                            and "0x0d0707963952f2fba59dd06f2b425ace40b492fe" not in address[1] \
+                            and "0x876eabf441b2ee5b5b0554fd502a8e0600950cfa" not in address[1] \
+                            and "0x0a98fb70939162725ae66e626fe4b52cff62c2e5" not in address[1] \
+                            and "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" not in address[1] \
+                            and "0xa910f92acdaf488fa6ef02174fb86208ad7722ba" not in address[1] \
+                            and "0x0577a79cfc63bbc0df38833ff4c4a3bf2095b404" not in address[1] \
+                            and "0x73f8fc2e74302eb2efda125a326655acf0dc2d1b" not in address[1] \
+                            and "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98" not in address[1] \
+                            and "0x4f6742badb049791cd9a37ea913f2bac38d01279" not in address[1] \
+                            and "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740" not in address[1] \
+                            and "0x0000000000000000000000000000000000000000" not in address[1] \
+                            and "0x416299aade6443e6f6e8ab67126e65a7f606eef5" not in address[1] \
+                            and "0xf5bec430576ff1b82e44ddb5a1c93f6f9d0884f3" not in address[1] \
+                            and "0x00192fb10df37c9fb26829eb2cc623cd1bf599e8" not in address[1] \
+                            and "0x829bd824b016326a401d083b33d092293333a830" not in address[1]:
+                        addresses.append(address[1])
     for n in range(500):
+        print(f"Account{n + 1}: {addresses[n]}")
         """with open(f"acc{n + 1}.csv") as f:
             data = f.readlines()
             for line in data:
@@ -415,7 +478,7 @@ def honest_graph():
                     tx_from = line[4]
                     tx_to = line[5]
                     value = line[9]
-                    write(f"honest_{n + 1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from, tx_to, value))"""
+                    write(f"honest_{n + 1}-{addresses[n]}.csv", entry="{},{},{}".format(tx_from, tx_to, value))
         if os.path.exists("edges.csv"):
             os.remove("edges.csv")
         if os.path.exists("nodes.csv"):
@@ -427,21 +490,29 @@ def honest_graph():
 
         extract_transactions(addresses[n])
         get_tr()
-        generate_eth_honest()
+        for _ in addresses:
+            with open(f"export-{addresses[n]}.csv") as a:
+                data = a.readlines()
+                for line in data:
+                    line = line.split(",")
+                    if "0x" in line[0]:
+                        value = line[9]
+                        timestamp = line[2]
+                        ent = "{},{}".format(timestamp, value)
+                        write("val_normalized.csv", entry=ent)
 
         fraudolent = load_addresses()
         create_edges(fraudolent)
         create_nodes()
 
         print(f"Account{n + 1}: {addresses[n]}")
-        create_graph(addresses[n])
+        create_graph(addresses[n])"""
 
 
 def main():
+    fraudulent_graph()
 
-    # fraudulent_graph()
-
-    honest_graph()
+    # honest_graph()
 
 
 if __name__ == '__main__':
